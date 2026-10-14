@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>React Click Button Demo</title>
+  <!-- Load React and ReactDOM from CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- If you prefer the production bundles, use .production.min.js -->
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 2rem; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; }
+    p { margin-top: 1rem; font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/javascript">
+  // Make sure the global React namespace is available
+  const { useState } = React;
+
+  // Simple counter component
+  function ClickCounter() {
+    const [count, setCount] = useState(0);
+
+    const handleClick = () => setCount(prev => prev + 1);
+
+    return (
+      <div>
+        <button onClick={handleClick}>Click me!</button>
+        <p>You clicked {count} {count === 1 ? 'time' : 'times'}</p>
+      </div>
+    );
+  }
+
+  // Render the component into the root element
+  ReactDOM.createRoot(document.getElementById('root')).render(<ClickCounter />);
+</script>
+
+</body>
+</html>
