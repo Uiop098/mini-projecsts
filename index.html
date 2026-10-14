@@ -1,179 +1,165 @@
-Here's a simple Flappy Bird game in HTML, CSS, and JavaScript. This version will have basic functionality and won't include all the features of the original game.
-
-
-
-
-
-
-html
-📋
- Copy
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flappy Bird</title>
+    <title>Flappy Bird Game</title>
     <style>
         body {
             margin: 0;
-            background-color: #f0f0f0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #70c5ce;
         }
-        
         canvas {
-            border: 1px solid #000;
+            border: 3px solid #333;
+            border-radius: 10px;
+            background-color: #87CEEB;
         }
-        
-        .game-over {
+        .score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .gameover {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
             padding: 20px;
-            border: 1px solid #000;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
             display: none;
         }
     </style>
 </head>
 <body>
-    <canvas id="game-canvas" width="400" height="600"></canvas>
-    <div class="game-over" id="game-over">
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <div class="score">Score: <span id="score">0</span></div>
+    <div class="gameover" id="gameover">
         <h2>Game Over!</h2>
-        <p>Your score: <span id="final-score">0</span></p>
-        <button id="restart-btn">Play Again</button>
+        <p>Your score: <span id="finalScore">0</span></p>
+        <button onclick="restartGame()">Restart</button>
     </div>
-    
+
     <script>
-        // Get the canvas element
-        const canvas = document.getElementById('game-canvas');
+        const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        
-        // Set the canvas dimensions
-        canvas.width = 400;
-        canvas.height = 600;
-        
-        // Define the bird object
-        const bird = {
+
+        let bird = {
             x: 50,
-            y: canvas.height / 2,
+            y: 150,
             width: 30,
             height: 30,
-            velocity: 0,
-            gravity: 0.2,
-            lift: -6,
-            rotation: 0
+            gravity: 0.6,
+            lift: -12,
+            velocity: 0
         };
-        
-        // Define the pipe object
-        const pipe = {
-            x: canvas.width,
-            y: Math.random() * (canvas.height - 200),
-            width: 80,
-            height: 200,
-            gap: 150
-        };
-        
-        // Define the score
+
+        let pipes = [];
         let score = 0;
-        
-        // Main game loop
-        function draw() {
-            // Clear the canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw the background
-            ctx.fillStyle = '#87CEEB';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw the bird
-            ctx.fillStyle = '#FFD700';
-            ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
-            
-            // Draw the pipe
-            ctx.fillStyle = '#008000';
-            ctx.fillRect(pipe.x, 0, pipe.width, pipe.y);
-            ctx.fillRect(pipe.x, pipe.y + pipe.gap, pipe.width, canvas.height - (pipe.y + pipe.gap));
-            
-            // Update the bird position
+        let gameOver = false;
+        let frameCount = 0;
+
+        function setup() {
+            pipes = [];
+            bird.y = 150;
+            bird.velocity = 0;
+            score = 0;
+            gameOver = false;
+            document.getElementById('score').textContent = score;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameover').style.display = 'none';
+            frameCount = 0;
+            requestAnimationFrame(loop);
+        }
+
+        function loop() {
+            if (!gameOver) {
+                update();
+                draw();
+                requestAnimationFrame(loop);
+            }
+        }
+
+        function update() {
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
-            
-            // Update the pipe position
-            pipe.x -= 2;
-            
-            // Check for collision with the pipe
-            if (checkCollision()) {
-                gameOver();
+
+            if (bird.y + bird.height >= canvas.height) {
+                gameOver = true;
             }
-            
-            // Check if the bird is out of bounds
-            if (bird.y + bird.height > canvas.height || bird.y < 0) {
-                gameOver();
+
+            if (bird.y < 0) {
+                bird.y = 0;
+                bird.velocity = 0;
             }
-            
-            // Update the score
-            if (pipe.x + pipe.width / 2 < bird.x + bird.width / 2 && pipe.x + pipe.width / 2 > bird.x - 2) {
-                score++;
+
+            if (frameCount % 90 === 0) {
+                let pipeHeight = Math.random() * (canvas.height - 200) + 50;
+                pipes.push({
+                    x: canvas.width,
+                    top: pipeHeight,
+                    bottom: canvas.height - pipeHeight - 150
+                });
             }
-            
-            // Draw the score
-            ctx.font = '24px Arial';
-            ctx.fillStyle = '#000';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'top';
-            ctx.fillText('Score: ' + score, 10, 10);
-            
-            // Request the next frame
-            requestAnimationFrame(draw);
+
+            pipes.forEach((pipe, index) => {
+                pipe.x -= 2;
+
+                if (pipe.x + 40 < 0) {
+                    pipes.splice(index, 1);
+                    score++;
+                }
+
+                if (bird.x + bird.width > pipe.x && bird.x < pipe.x + 40) {
+                    if (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom) {
+                        gameOver = true;
+                    }
+                }
+            });
+
+            frameCount++;
         }
-        
-        // Check for collision with the pipe
-        function checkCollision() {
-            if (pipe.x < bird.x + bird.width &&
-                pipe.x + pipe.width > bird.x &&
-                (bird.y < pipe.y || bird.y + bird.height > pipe.y + pipe.gap)) {
-                return true;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#70c5ce";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+
+            pipes.forEach(pipe => {
+                ctx.fillStyle = "green";
+                ctx.fillRect(pipe.x, 0, 40, pipe.top);
+                ctx.fillRect(pipe.x, canvas.height - pipe.bottom, 40, pipe.bottom);
+            });
+
+            document.getElementById('score').textContent = score;
+        }
+
+        function flap() {
+            if (!gameOver) {
+                bird.velocity += bird.lift;
             }
-            return false;
         }
-        
-        // Game over
-        function gameOver() {
-            // Stop the game loop
-            cancelAnimationFrame(draw);
-            
-            // Show the game over screen
-            document.getElementById('game-over').style.display = 'block';
-            document.getElementById('final-score').textContent = score;
+
+        function restartGame() {
+            setup();
+            loop();
         }
-        
-        // Handle user input
-        document.addEventListener('keydown', (e) => {
-            if (e.key === ' ') {
-                bird.velocity = bird.lift;
+
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space' || event.code === 'ArrowUp') {
+                flap();
             }
         });
-        
-        // Start the game
-        draw();
-    </script>
-</body>
-</html>
-
-
-
-
-
-This code creates a simple Flappy Bird game where you control a bird that must navigate through pipes. The game ends when the bird collides with a pipe or goes out of bounds. The score is displayed at the top-left corner of the screen.
-
-How to play:
-
-1. Open the HTML file in a web browser.
-2. Press the space bar to make the bird jump.
-3. Navigate the bird through the pipes to score points.
-4. Avoid colliding with the pipes or going out of bounds.
-
-Note that this is a simplified version of the game and does not include features like sound effects, animations, or a high score system. You can modify the code to add these features or improve the gameplay.
