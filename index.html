@@ -1,165 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flappy Bird Game</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: #70c5ce;
-        }
-        canvas {
-            border: 3px solid #333;
-            border-radius: 10px;
-            background-color: #87CEEB;
-        }
-        .score {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 24px;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-        .gameover {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Road Rush - Car Game</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
-    <div class="score">Score: <span id="score">0</span></div>
-    <div class="gameover" id="gameover">
-        <h2>Game Over!</h2>
-        <p>Your score: <span id="finalScore">0</span></p>
-        <button onclick="restartGame()">Restart</button>
+  <div id="game-wrap">
+    <canvas id="game" width="400" height="640"></canvas>
+
+    <div id="hud">
+      <span>Score: <b id="score">0</b></span>
+      <span>Best: <b id="best">0</b></span>
+      <span>Speed: <b id="speed">0</b> km/h</span>
     </div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+    <div id="overlay">
+      <h1 id="title">Road Rush</h1>
+      <p id="msg">Dodge the traffic. Go as far as you can.</p>
+      <button id="startBtn">Start</button>
+      <p class="hint">Move: ← → or A / D &nbsp;|&nbsp; Pause: P</p>
+    </div>
 
-        let bird = {
-            x: 50,
-            y: 150,
-            width: 30,
-            height: 30,
-            gravity: 0.6,
-            lift: -12,
-            velocity: 0
-        };
-
-        let pipes = [];
-        let score = 0;
-        let gameOver = false;
-        let frameCount = 0;
-
-        function setup() {
-            pipes = [];
-            bird.y = 150;
-            bird.velocity = 0;
-            score = 0;
-            gameOver = false;
-            document.getElementById('score').textContent = score;
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('gameover').style.display = 'none';
-            frameCount = 0;
-            requestAnimationFrame(loop);
-        }
-
-        function loop() {
-            if (!gameOver) {
-                update();
-                draw();
-                requestAnimationFrame(loop);
-            }
-        }
-
-        function update() {
-            bird.velocity += bird.gravity;
-            bird.y += bird.velocity;
-
-            if (bird.y + bird.height >= canvas.height) {
-                gameOver = true;
-            }
-
-            if (bird.y < 0) {
-                bird.y = 0;
-                bird.velocity = 0;
-            }
-
-            if (frameCount % 90 === 0) {
-                let pipeHeight = Math.random() * (canvas.height - 200) + 50;
-                pipes.push({
-                    x: canvas.width,
-                    top: pipeHeight,
-                    bottom: canvas.height - pipeHeight - 150
-                });
-            }
-
-            pipes.forEach((pipe, index) => {
-                pipe.x -= 2;
-
-                if (pipe.x + 40 < 0) {
-                    pipes.splice(index, 1);
-                    score++;
-                }
-
-                if (bird.x + bird.width > pipe.x && bird.x < pipe.x + 40) {
-                    if (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom) {
-                        gameOver = true;
-                    }
-                }
-            });
-
-            frameCount++;
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#70c5ce";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = "yellow";
-            ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
-
-            pipes.forEach(pipe => {
-                ctx.fillStyle = "green";
-                ctx.fillRect(pipe.x, 0, 40, pipe.top);
-                ctx.fillRect(pipe.x, canvas.height - pipe.bottom, 40, pipe.bottom);
-            });
-
-            document.getElementById('score').textContent = score;
-        }
-
-        function flap() {
-            if (!gameOver) {
-                bird.velocity += bird.lift;
-            }
-        }
-
-        function restartGame() {
-            setup();
-            loop();
-        }
-
-        document.addEventListener('keydown', function(event) {
-            if (event.code === 'Space' || event.code === 'ArrowUp') {
-                flap();
-            }
-        });
+    <div id="touch">
+      <button id="leftBtn" aria-label="Left">◀</button>
+      <button id="rightBtn" aria-label="Right">▶</button>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
